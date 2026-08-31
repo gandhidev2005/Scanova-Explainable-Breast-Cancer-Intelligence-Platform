@@ -1,0 +1,43 @@
+# Scanova - Breast Cancer AI
+# Compatible with Python 3.14.6 (tested floor: 3.10+)
+# Install with:  python -m pip install -r requirements.txt
+
+# ── Configuration ─────────────────────────────────────
+python-dotenv>=1.0.0
+
+# ── Flask web framework ───────────────────────────────
+flask>=3.1.0
+flask-cors>=5.0.0
+
+# ── Auth & security ───────────────────────────────────
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]==1.7.4
+# passlib is unmaintained; bcrypt>=4.1 breaks its backend detection
+bcrypt==4.0.1
+pyotp>=2.9.0
+qrcode[pil]>=8.0
+
+# ── Image / numeric ───────────────────────────────────
+# NumPy 2.1+ ships cp314 wheels; older 1.x will not install on 3.14
+pillow>=11.0.0
+numpy>=2.1.0
+
+# ── HTTP (Groq Explainable AI chat) ───────────────────
+requests>=2.32.0
+
+# ── Deep learning (Python 3.14 needs torch>=2.9) ───────
+#
+# Default: CPU wheels from PyPI (torch 2.9+ / torchvision 0.24+).
+# For NVIDIA GPU, install AFTER this file with ONE of:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu124
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+#
+torch>=2.9.0
+torchvision>=0.24.0
+
+# ── Explainability & DICOM ────────────────────────────
+# PyPI package name is "grad-cam" (imports as pytorch_grad_cam)
+grad-cam>=1.5.0
+opencv-python>=4.10.0,<5
+pydicom>=2.4.0
