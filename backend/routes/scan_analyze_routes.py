@@ -5,7 +5,7 @@ import os
 from flask import jsonify, request
 
 from backend.config import config
-from backend.inference import run_inference
+from backend.inference.engine import normalize_modality, run_inference
 from backend.middleware.auth import require_auth
 from backend.routes import api
 from backend.services.image_service import load_image_from_upload
@@ -26,6 +26,8 @@ def analyze_scan(user):
         files = [request.files["file"]]
     if not files:
         return jsonify({"detail": "No file provided"}), 400
+
+    modality = normalize_modality(request.form.get("modality"))
 
     out = []
     for f in files:
@@ -58,13 +60,18 @@ def analyze_scan(user):
         except Exception:
             return jsonify({"detail": "Cannot read image file"}), 400
 
-        result = run_inference(img)
+        try:
+            result = run_inference(img, modality=modality)
+        except Exception:
+            return jsonify(
+                {"detail": "Analysis failed for this image. The model could not score it."}
+            ), 500
         row = insert(
             "scans",
             {
                 "uploaded_by": user["id"],
                 "filename": fname,
-                "modality": "mammography",
+                "modality": result.get("modality") or modality,
                 "prediction": result["prediction"],
                 "probability": result["probability"],
                 "confidence": result["confidence"],
@@ -74,6 +81,8 @@ def analyze_scan(user):
                 "shap_mammo": result["shap_cbis"],
                 "shap_rsna": result["shap_rsna"],
                 "shap_us": result["shap_us"],
+                "shap_mri": result.get("shap_mri"),
+                "model_used": result.get("model_used"),
             },
         )
         result["scan_id"] = row["id"]

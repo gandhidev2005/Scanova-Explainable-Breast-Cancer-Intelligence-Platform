@@ -7,3 +7,12 @@ __pycache__/
 venv/
 .vscode/
 *.log
+
+# revision / Grad-CAM / paper experiment artifacts
+*.csv
+revision_experiments.py
+revision_results.json
+gradcam_pointing_game.py
+gradcam_pointing_summary.json
+gradcam_roi_build_summary.json
+gradcam_overlays/

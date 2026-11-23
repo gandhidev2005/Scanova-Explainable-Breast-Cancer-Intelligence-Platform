@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS scans (
     shap_mammo    DECIMAL(5,2) NULL,
     shap_rsna     DECIMAL(5,2) NULL,
     shap_us       DECIMAL(5,2) NULL,
+    shap_mri      DECIMAL(5,2) NULL,
     model_used    VARCHAR(120) NULL,
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_scans_user FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE,

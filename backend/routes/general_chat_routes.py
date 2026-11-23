@@ -4,7 +4,7 @@ from flask import jsonify, request
 
 from backend.middleware.auth import require_auth
 from backend.routes import api
-from backend.services.groq_service import call_groq
+from backend.services.groq_service import call_llm
 from backend.services.prompt_service import build_general_prompt
 
 
@@ -27,7 +27,7 @@ def general_chat(user):
     messages.append({"role": "user", "content": message})
 
     try:
-        reply = call_groq(messages)
-        return jsonify({"response": reply})
+        reply, provider = call_llm(messages)
+        return jsonify({"response": reply, "provider": provider})
     except Exception:
         return jsonify({"detail": "Chat service unavailable"}), 503

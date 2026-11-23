@@ -4,7 +4,7 @@ from flask import jsonify, request
 
 from backend.middleware.auth import require_auth
 from backend.routes import api
-from backend.services.groq_service import call_groq
+from backend.services.groq_service import call_llm
 from backend.services.prompt_service import build_general_prompt
 from backend.storage.json_store import (
     count,
@@ -110,7 +110,7 @@ def send_direct_chat_message(user, sid):
     messages.append({"role": "user", "content": msg})
 
     try:
-        reply = call_groq(messages)
+        reply, provider = call_llm(messages)
         insert(
             "direct_chat_messages",
             {"session_id": sid, "role": "user", "content": msg},
@@ -124,7 +124,7 @@ def send_direct_chat_message(user, sid):
             update("direct_chat_sessions", sid, {"title": title, "updated": now_str()})
         else:
             update("direct_chat_sessions", sid, {"updated": now_str()})
-        return jsonify({"response": reply})
+        return jsonify({"response": reply, "provider": provider})
     except Exception:
         return jsonify({"detail": "Chat service unavailable"}), 503
 

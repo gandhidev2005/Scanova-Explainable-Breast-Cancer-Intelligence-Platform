@@ -4,7 +4,7 @@ from flask import jsonify, request
 
 from backend.middleware.auth import require_auth
 from backend.routes import api
-from backend.services.groq_service import call_groq
+from backend.services.groq_service import call_llm
 from backend.services.prompt_service import build_scan_prompt, resolve_effective_role
 from backend.storage.json_store import find_one, insert
 
@@ -38,7 +38,7 @@ def scan_chat(user):
     scan_id = data.get("scan_id")
 
     try:
-        reply = call_groq(messages)
+        reply, provider = call_llm(messages)
         if scan_id:
             try:
                 row = find_one("scans", lambda s: s.get("id") == int(scan_id))
@@ -65,6 +65,6 @@ def scan_chat(user):
                     )
             except Exception as db_err:
                 print(f"[Chat DB] Could not save: {db_err}")
-        return jsonify({"response": reply})
+        return jsonify({"response": reply, "provider": provider})
     except Exception:
         return jsonify({"detail": "Chat service unavailable"}), 503

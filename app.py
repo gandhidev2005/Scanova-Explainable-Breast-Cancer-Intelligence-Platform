@@ -67,7 +67,20 @@ if __name__ == "__main__":
     print(f"  CBIS model  : {ok if st['cbis'] else mis}")
     print(f"  RSNA model  : {ok if st['rsna'] else mis}")
     print(f"  BUSI model  : {ok if st['busi'] else mis}")
+    print(f"  MRI model   : {ok if st['mri'] else mis}")
+    print(f"  Fusion V3   : {ok if st['fusion_v3'] else mis}")
     print(f"  Fusion V2   : {ok if st['fusion_v2'] else mis}")
+    print("=" * 60)
+    from backend.services.llm_service import groq_configured, ollama_configured
+    from backend.config import config as cfg
+    groq_s = "[OK]" if groq_configured() else "[not set — will use Ollama if available]"
+    ollama_s = (
+        f"[OK] fallback {cfg.OLLAMA_MODEL} @ {cfg.OLLAMA_BASE_URL}"
+        if ollama_configured()
+        else "[disabled]"
+    )
+    print(f"  Groq LLM    : {groq_s}")
+    print(f"  Ollama      : {ollama_s}")
     print("=" * 60)
     print(f"  Storage     : JSON ({config.DATA_DIR})")
     print(f"  Admin email : {config.ADMIN_EMAIL}")

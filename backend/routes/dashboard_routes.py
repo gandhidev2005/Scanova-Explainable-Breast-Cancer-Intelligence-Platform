@@ -7,6 +7,7 @@ from flask import jsonify
 from backend.inference import models_status
 from backend.middleware.auth import require_auth
 from backend.routes import api
+from backend.services.validation_metrics import EXTERNAL_VALIDATION
 from backend.storage.json_store import count, find_all, find_one
 
 
@@ -68,6 +69,7 @@ def dashboard_stats(user):
                 "total_scans": total,
                 "queue": queue,
                 "throughput": throughput,
+                "external_validation": EXTERNAL_VALIDATION,
             }
         )
 
@@ -88,14 +90,25 @@ def dashboard_stats(user):
                 "risk_level": last.get("risk_level", "unknown"),
                 "prediction": last.get("prediction", "N/A"),
                 "probability": last.get("probability", 0),
+                "confidence": last.get("confidence"),
+                "uncertainty": last.get("uncertainty"),
+                "filename": last.get("filename"),
+                "model_used": last.get("model_used"),
                 "total_scans": total,
+                "external_validation": EXTERNAL_VALIDATION,
             }
         )
 
     if role == "clinic":
         patients_n = count("patients")
         high_risk = count("patients", where=lambda p: p.get("risk_level") == "high")
-        return jsonify({"total_patients": patients_n, "high_risk": high_risk})
+        return jsonify(
+            {
+                "total_patients": patients_n,
+                "high_risk": high_risk,
+                "external_validation": EXTERNAL_VALIDATION,
+            }
+        )
 
     if role == "admin":
         users_n = count("users")
@@ -132,7 +145,19 @@ def dashboard_stats(user):
             "role_requests", where=lambda r: r.get("status") == "pending"
         )
         st = models_status()
-        files_ok = st["cbis"] and st["rsna"] and st["busi"] and st["fusion_v2"]
+        files_ok = (
+            st["cbis"]
+            and st["rsna"]
+            and st["busi"]
+            and st["mri"]
+            and (st["fusion_v3"] or st["fusion_v2"])
+        )
+        metrics = st.get("metrics") or {}
+        fusion_auc = (
+            metrics.get("fusion_v3", {}).get("auc")
+            if st.get("fusion_v3")
+            else metrics.get("fusion_v2", {}).get("auc", 0.9913)
+        )
         return jsonify(
             {
                 "total_users": users_n,
@@ -142,13 +167,19 @@ def dashboard_stats(user):
                 "avg_turnaround_min": avg_turnaround_min,
                 "pending_role_requests": pending_rr,
                 "system_health": 99.8,
-                "model_auc": 0.9913,
+                "model_auc": round(float(fusion_auc or 0.9897), 4),
                 "models_loaded": st["loaded"],
                 "models_files_ok": files_ok,
                 "model_cbis": st["cbis"],
                 "model_rsna": st["rsna"],
                 "model_busi": st["busi"],
-                "model_fusion": st["fusion_v2"],
+                "model_mri": st["mri"],
+                "model_fusion": st["fusion_v3"] or st["fusion_v2"],
+                "model_fusion_v3": st["fusion_v3"],
+                "model_fusion_v2": st["fusion_v2"],
+                "fusion_active": st.get("fusion_active"),
+                "metrics": metrics,
+                "external_validation": EXTERNAL_VALIDATION,
             }
         )
 

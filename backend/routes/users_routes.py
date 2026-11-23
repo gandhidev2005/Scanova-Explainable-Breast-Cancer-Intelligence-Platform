@@ -125,6 +125,8 @@ def get_user_detail(user, uid):
             "shap_mammo": s.get("shap_mammo"),
             "shap_rsna": s.get("shap_rsna"),
             "shap_us": s.get("shap_us"),
+            "shap_mri": s.get("shap_mri"),
+            "model_used": s.get("model_used"),
             "created": s.get("created"),
             "modality": s.get("modality"),
         }
